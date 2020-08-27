@@ -46,7 +46,7 @@ jobs:
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest
       env:
-        AWS_ACCESS_KEY_ID: ${{ AWS_ACCESS_KEY_ID_TST_PUSHECR }}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID_TST_PUSHECR}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
     - name: Force deploy service on ECS in tst
       run: |
@@ -55,7 +55,7 @@ jobs:
           aws ecs update-service --cluster ${CLUSTER_NAME} --force-new-deployment --service ${service} --region ${AWS_REGION:-eu-central-1}
         done
       env:
-        AWS_ACCESS_KEY_ID: ${{ AWS_ACCESS_KEY_ID_TST_PUSHECR }}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID_TST_PUSHECR}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
         SERVICE_NAMES: ${{ SERVICE_NAMES_TST }}
         CLUSTER_NAME: ${{ CLUSTER_NAME_TST }}
