@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: cwa-statistics-server
+server:
+  ssl:
+    enabled: true
+    enabled-protocols: TLSv1.2,TLSv1.3
+    protocol: TLS
+    ciphers: >-
+      TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      TLS_DHE_DSS_WITH_AES_128_GCM_SHA256
+      TLS_DHE_DSS_WITH_AES_256_GCM_SHA384
+      TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+      TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+      TLS_AES_128_GCM_SHA256
+      TLS_AES_256_GCM_SHA384
+      TLS_AES_128_CCM_SHA256
+    key-password: ${SSL_STATISTICS_KEYSTORE_PASSWORD}
+    key-store: ${SSL_STATISTICS_KEYSTORE_PATH}
+    key-store-password: ${SSL_STATISTICS_KEYSTORE_PASSWORD}
+    key-store-provider: SUN
+    key-store-type: JKS
+  servlet:
+    context-path: /statistics-api
+springdoc:
+  api-docs:
+    path: /api-docs/docs
+  swagger-ui:
+    path: /api-docs/swagger
+management:
+  endpoint:
+    info:
+      enabled: true
+    health:
+      enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: info,health,metrics,prometheus
+    jmx:
+      exposure:
+        include: info,health,metrics,prometheus
+  health:
+    probes:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+cloud:
+  aws:
+    region:
+      static: eu-central-1
+    stack:
+      auto: false
+
+statistics:
+  cases:
+    url: https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.json
+    poll-rate: 360000
+  hospitalisations:
+    url: https://epistat.sciensano.be/Data/COVID19BE_HOSP.json
+    poll-rate: 360000
+  moving-average-size: 7
+
