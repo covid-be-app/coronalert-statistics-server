@@ -3,6 +3,10 @@ on:
   push:
     branches:
     - development
+  pull_request:
+    types:
+    - closed
+
 env:
   AWS_DEFAULT_REGION: "eu-central-1"
   ECR_REPO_HOST: "678053966837.dkr.ecr.eu-central-1.amazonaws.com"
