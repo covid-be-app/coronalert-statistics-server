@@ -22,27 +22,29 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - uses: actions/cache@v1
-      env:
-        cache-name: m2
-      with:
-        path: ~/.m2/repository
-        key: ${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ env.cache-name }}-
-    - uses: actions/setup-java@v1
-      with:
-        java-version: 11
-    - name: mvn package
-      run: mvn --batch-mode package
-    - name: docker build
-      run: |
-        docker build \
-        --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop \
-        --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest \
-        .
+#     - uses: actions/cache@v1
+#       env:
+#         cache-name: m2
+#       with:
+#         path: ~/.m2/repository
+#         key: ${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
+#         restore-keys: ${{ env.cache-name }}-
+#     - uses: actions/setup-java@v1
+#       with:
+#         java-version: 11
+#     - name: mvn package
+#       run: mvn --batch-mode package
+#     - name: docker build
+#       run: |
+#         docker build \
+#         --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop \
+#         --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest \
+#         .
     - name: docker push ecr
       run: |
+        set
         sudo apt-get install --yes awscli
+        aws sts get-caller-identity
         aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_REPO_HOST}
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest
