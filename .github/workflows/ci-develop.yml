@@ -49,7 +49,8 @@ jobs:
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest
       env:
-        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID_TOOLING_PUSHECR}
+        AWS_ACCESS_KEY_ID2: ${AWS_ACCESS_KEY_ID_TOOLING_PUSHECR}
+        AWS_ACCESS_KEY_ID: AKIAJ6OP5SZO56OLDDDQ
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
     - name: Force deploy service on ECS in tst
       run: |
