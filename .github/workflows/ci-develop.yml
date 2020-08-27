@@ -12,7 +12,7 @@ env:
   ECR_REPO_HOST: "678053966837.dkr.ecr.eu-central-1.amazonaws.com"
   ECR_REPO_NAME: "becoronalert/statistics-service"
   AWS_ACCESS_KEY_ID_TST_PUSHECR: "AKIAYQI56444D6NQRCHO"
-  SERVICE_NAMES_TST: "Covid19DevECS2-ServiceStatistics-VJPV2PI7IFNZ"
+  SERVICE_NAMES_TST: "Covid19TstECS2-ServiceStatistics-SHHABO667GBT"
   CLUSTER_NAME_TST: "ecs-covid19-tst"
 jobs:
   build:
@@ -57,6 +57,6 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID_TST_PUSHECR}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
-        SERVICE_NAMES: ${{ SERVICE_NAMES_TST }}
-        CLUSTER_NAME: ${{ CLUSTER_NAME_TST }}
+        SERVICE_NAMES: ${SERVICE_NAMES_TST}
+        CLUSTER_NAME: ${CLUSTER_NAME_TST}
 
