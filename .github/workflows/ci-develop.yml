@@ -81,7 +81,7 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on DEV
         run: |
-          aws ecs describe-task-definition --task-definition ${{ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
         env:
           CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_DEV }}
           ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY_DEV }}
