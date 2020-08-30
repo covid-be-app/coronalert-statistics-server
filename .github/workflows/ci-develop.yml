@@ -56,13 +56,16 @@ jobs:
       - name: Install AWS CLI
         run: |
           sudo apt-get install --yes awscli
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TOOLING_PUSHECR }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: docker push ecr
         run: |
           aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_HOST }}
           docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_TOOLING_PUSHECR }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
 
 
   deploy-tst:
