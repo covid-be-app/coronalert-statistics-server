@@ -12,11 +12,15 @@ env:
   AWS_DEFAULT_REGION: "eu-central-1"
   ECR_REPO_HOST: "678053966837.dkr.ecr.eu-central-1.amazonaws.com"
   ECR_REPO_NAME: "becoronalert/statistics-service"
-  AWS_ACCESS_KEY_ID_TST_PUSHECR: "AKIAYQI56444D6NQRCHO"
   AWS_ACCESS_KEY_ID_DEV_PUSHECR: "AKIAUXEUBWP3LUW43YOS"
+  AWS_ACCESS_KEY_ID_TST_PUSHECR: "AKIAYQI56444D6NQRCHO"
   AWS_ACCESS_KEY_ID_TOOLING_PUSHECR: "AKIAJ6OP5SZO56OLDDDQ"
-  CLUSTER_NAME_TST: "ecs-covid19-tst"
   CLUSTER_NAME_DEV: "ecs-covid19-dev"
+  CLUSTER_NAME_TST: "ecs-covid19-tst"
+  ECS_TASK_FAMILY_DEV: "task-covid19-dev-statistics"
+  ECS_TASK_FAMILY_TST: "task-covid19-tst-statistics"
+  ECS_CONTAINER_NAME_DEV: "covid19-dev-statistics"
+  ECS_CONTAINER_NAME_TST: "covid19-tst-statistics"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,8 +47,7 @@ jobs:
     - name: docker build
       run: |
         docker build \
-        --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop \
-        --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest \
+        --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA} \
         .
     - name: Run a vulnerability scan on the docker image
       run: |
@@ -61,7 +64,7 @@ jobs:
         retries=0
         echo "Waiting for clair daemon to start"
         while( ! wget -T 10 -q -O /dev/null http://localhost:6060/v1/namespaces ) ; do sleep 1 ; echo -n "." ; if [ $retries -eq 10 ] ; then echo " Timeout, aborting." ; exit 1 ; fi ; retries=$(($retries+1)) ; done
-        ./clair-scanner -c http://localhost:6060 --ip $(hostname -i) -r gl-container-scanning-report.json -l clair.log -w clair-whitelist.yml ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest || true
+        ./clair-scanner -c http://localhost:6060 --ip $(hostname -i) -r gl-container-scanning-report.json -l clair.log -w clair-whitelist.yml ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA} || true
         cat gl-container-scanning-report.json
     - name: Install AWS CLI
       run: |
@@ -69,27 +72,76 @@ jobs:
     - name: docker push ecr
       run: |
         aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_REPO_HOST}
-        docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop
-        docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest
+        docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TOOLING_PUSHECR }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
-    - name: Force deploy service on ECS in DEV
+
+
+    - name: Retrieve Task Definition on DEV
       run: |
-        for service in $(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | awk -F'/' '{print $2}'); do
-          aws ecs update-service --cluster ${CLUSTER_NAME} --force-new-deployment --service ${service} --region ${AWS_REGION:-eu-central-1}
-        done
+        aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
-    - name: Force deploy service on ECS in TST
+        ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_DEV }}
+    - name: Update Task Definition for DEV with new image
+      id: render-task-def-dev
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${ECS_CONTAINER_NAME}
+        image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
+        ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_DEV }}
+    - name: Get service to update
       run: |
-        for service in $(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | awk -F'/' '{print $2}'); do
-          aws ecs update-service --cluster ${CLUSTER_NAME} --force-new-deployment --service ${service} --region ${AWS_REGION:-eu-central-1}
-        done
+        echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
+    - name: Deploy services with new task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-task-def-dev.outputs.task-definition }}
+        service: ${SERVICE}
+        cluster: ${CLUSTER_NAME}
+        wait-for-service-stability: false
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
+        CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
+
+    - name: Retrieve Task Definition on TST
+      run: |
+        aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
-
+        ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_TST }}
+    - name: Update Task Definition for TST with new image
+      id: render-task-def-tst
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${ECS_CONTAINER_NAME}
+        image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
+        ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_TST }}
+    - name: Get service to update
+      run: |
+        echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
+    - name: Deploy services with new task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-task-def-tst.outputs.task-definition }}
+        service: ${SERVICE}
+        cluster: ${CLUSTER_NAME}
+        wait-for-service-stability: false
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
+        CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
