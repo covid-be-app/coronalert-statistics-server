@@ -94,7 +94,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
-        container-name: ${ECS_CONTAINER_NAME}
+        container-name: "covid19-dev-statistics"
         image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
