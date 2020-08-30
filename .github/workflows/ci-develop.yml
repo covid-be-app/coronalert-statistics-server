@@ -61,7 +61,7 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_REPO_HOST}
           docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
         env:
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TOOLING_PUSHECR }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_TOOLING_PUSHECR }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
 
 
@@ -76,15 +76,15 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
-          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on DEV
         run: |
           aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
         env:
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
-          ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_DEV }}
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_DEV }}
+          ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY_DEV }}
       - name: Show task definition
         run: |
           cat task-definition.json
@@ -93,19 +93,19 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: "${{ env.ECS_CONTAINER_NAME_DEV }}"
-          image: "${{ env.ECR_REPO_HOST }}/${{ env.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
+          container-name: "${{ secrets.ECS_CONTAINER_NAME_DEV }}"
+          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
       - name: Get service to update
         run: |
           echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
         env:
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_DEV }}
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-task-def-dev.outputs.task-definition }}
           service: ${{ env.SERVICE }}
-          cluster: ${{ env.CLUSTER_NAME_DEV }}
+          cluster: ${{ secrets.CLUSTER_NAME_DEV }}
           wait-for-service-stability: false
 
   deploy-dev:
@@ -119,15 +119,15 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
-          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on TST
         run: |
           aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
         env:
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
-          ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_TST }}
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_TST }}
+          ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY_TST }}
       - name: Show task definition
         run: |
           cat task-definition.json
@@ -136,17 +136,17 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: "${{ env.ECS_CONTAINER_NAME_TST }}"
-          image: "${{ env.ECR_REPO_HOST }}/${{ env.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
+          container-name: "${{ secrets.ECS_CONTAINER_NAME_TST }}"
+          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
       - name: Get service to update
         run: |
           echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
         env:
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_TST }}
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-task-def-tst.outputs.task-definition }}
           service: ${{ env.SERVICE }}
-          cluster: ${{ env.CLUSTER_NAME_TST }}
+          cluster: ${{ secrets.CLUSTER_NAME_TST }}
           wait-for-service-stability: false
