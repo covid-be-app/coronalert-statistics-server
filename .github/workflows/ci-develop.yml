@@ -98,10 +98,8 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
-        container-name: "covid19-dev-statistics"
-        image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
-      env:
-        ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_DEV }}
+        container-name: "${{ env.ECS_CONTAINER_NAME_DEV }}"
+        image: "${{ env.ECR_REPO_HOST }}/${{ env.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
     - name: Get service to update
       run: |
         echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
@@ -135,10 +133,8 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
-        container-name: "covid19-tst-statistics"
-        image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
-      env:
-        ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_TST }}
+        container-name: "${{ env.ECS_CONTAINER_NAME_TST }}"
+        image: "${{ env.ECR_REPO_HOST }}/${{ env.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
     - name: Get service to update
       run: |
         echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
