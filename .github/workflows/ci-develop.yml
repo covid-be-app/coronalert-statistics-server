@@ -91,12 +91,12 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
-        container-name: ${ECS_CONTAINER_NAME}
+        container-name: ${ECS_TASK_FAMILY}
         image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
-        ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_DEV }}
+        ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_DEV }}
     - name: Get service to update
       run: |
         echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
