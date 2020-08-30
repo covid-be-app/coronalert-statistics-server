@@ -78,12 +78,16 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
 
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Retrieve Task Definition on DEV
       run: |
         aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
         ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_DEV }}
     - name: Show task definition
@@ -97,8 +101,6 @@ jobs:
         container-name: "covid19-dev-statistics"
         image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
         ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_DEV }}
     - name: Get service to update
       run: |
@@ -111,16 +113,18 @@ jobs:
         cluster: ${CLUSTER_NAME}
         wait-for-service-stability: false
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Retrieve Task Definition on TST
       run: |
         aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
         ECS_TASK_FAMILY: ${{ env.ECS_TASK_FAMILY_TST }}
     - name: Show task definition
@@ -131,11 +135,9 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
-        container-name: ${ECS_CONTAINER_NAME}
+        container-name: "covid19-tst-statistics"
         image: ${ECR_REPO_HOST}/${ECR_REPO_NAME}:${GITHUB_SHA}
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
         ECS_CONTAINER_NAME: ${{ env.ECS_CONTAINER_NAME_TST }}
     - name: Get service to update
       run: |
@@ -148,6 +150,4 @@ jobs:
         cluster: ${CLUSTER_NAME}
         wait-for-service-stability: false
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
