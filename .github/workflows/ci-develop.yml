@@ -8,19 +8,6 @@ on:
     types:
     - closed
 
-env:
-  AWS_DEFAULT_REGION: "eu-central-1"
-  ECR_REPO_HOST: "678053966837.dkr.ecr.eu-central-1.amazonaws.com"
-  ECR_REPO_NAME: "becoronalert/statistics-service"
-  AWS_ACCESS_KEY_ID_DEV_PUSHECR: "AKIAUXEUBWP3LUW43YOS"
-  AWS_ACCESS_KEY_ID_TST_PUSHECR: "AKIAYQI56444D6NQRCHO"
-  AWS_ACCESS_KEY_ID_TOOLING_PUSHECR: "AKIAJ6OP5SZO56OLDDDQ"
-  CLUSTER_NAME_DEV: "ecs-covid19-dev"
-  CLUSTER_NAME_TST: "ecs-covid19-tst"
-  ECS_TASK_FAMILY_DEV: "task-covid19-dev-statistics"
-  ECS_TASK_FAMILY_TST: "task-covid19-tst-statistics"
-  ECS_CONTAINER_NAME_DEV: "covid19-dev-statistics"
-  ECS_CONTAINER_NAME_TST: "covid19-tst-statistics"
 jobs:
   build:
     runs-on: ubuntu-latest
