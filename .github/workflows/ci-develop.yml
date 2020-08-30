@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - development
+    - feature/CBA-155-cicd
   pull_request:
     types:
     - closed
@@ -12,9 +13,10 @@ env:
   ECR_REPO_HOST: "678053966837.dkr.ecr.eu-central-1.amazonaws.com"
   ECR_REPO_NAME: "becoronalert/statistics-service"
   AWS_ACCESS_KEY_ID_TST_PUSHECR: "AKIAYQI56444D6NQRCHO"
+  AWS_ACCESS_KEY_ID_DEV_PUSHECR: "AKIAUXEUBWP3LUW43YOS"
   AWS_ACCESS_KEY_ID_TOOLING_PUSHECR: "AKIAJ6OP5SZO56OLDDDQ"
-  SERVICE_NAMES_TST: "Covid19TstECS2-ServiceStatistics-SHHABO667GBT"
   CLUSTER_NAME_TST: "ecs-covid19-tst"
+  CLUSTER_NAME_DEV: "ecs-covid19-dev"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,24 +42,33 @@ jobs:
         --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop \
         --tag ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest \
         .
-    - name: docker push ecr
+    - name: Install AWS CLI
       run: |
         sudo apt-get install --yes awscli
+    - name: docker push ecr
+      run: |
         aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_REPO_HOST}
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:develop
         docker push ${ECR_REPO_HOST}/${ECR_REPO_NAME}:latest
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TOOLING_PUSHECR }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TOOLING_PUSHECR }}
-    - name: Force deploy service on ECS in tst
+    - name: Force deploy service on ECS in DEV
       run: |
-        sudo apt-get install --yes awscli
-        for service in ${SERVICE_NAMES}; do
+        for service in $(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | awk -F'/' '{print $2}'); do
+          aws ecs update-service --cluster ${CLUSTER_NAME} --force-new-deployment --service ${service} --region ${AWS_REGION:-eu-central-1}
+        done
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_DEV_PUSHECR }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV_PUSHECR }}
+        CLUSTER_NAME: ${{ env.CLUSTER_NAME_DEV }}
+    - name: Force deploy service on ECS in TST
+      run: |
+        for service in $(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | awk -F'/' '{print $2}'); do
           aws ecs update-service --cluster ${CLUSTER_NAME} --force-new-deployment --service ${service} --region ${AWS_REGION:-eu-central-1}
         done
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID_TST_PUSHECR }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TST_PUSHECR }}
-        SERVICE_NAMES: ${{ env.SERVICE_NAMES_TST }}
         CLUSTER_NAME: ${{ env.CLUSTER_NAME_TST }}
 
