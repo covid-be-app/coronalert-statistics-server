@@ -84,25 +84,27 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on DEV
         run: |
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_DEV }} --query taskDefinition > task-definition.json
-      - name: Show task definition
+          aws ecs describe-task-definition --task-definition "${{ secrets.ECS_TASK_FAMILY_DEV }}" --query taskDefinition > task-definition.json
+      - name: Set image name as output
+        id: set-image-output
         run: |
-          cat task-definition.json
+          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Update Task Definition for DEV with new image
-        id: render-task-def-dev
+        id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
           container-name: "${{ secrets.ECS_CONTAINER_NAME_DEV }}"
-          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
+          image: "${{ steps.set-image-output.outputs.image }}"
       - name: Get service to update
+        id: set-service-output
         run: |
-          echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_DEV }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
+          echo "::set-output name=service::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_DEV }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.render-task-def-dev.outputs.task-definition }}
-          service: ${{ env.SERVICE }}
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ steps.set-service-output.outputs.service }}
           cluster: ${{ secrets.CLUSTER_NAME_DEV }}
           wait-for-service-stability: false
 
@@ -122,24 +124,26 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on TST
         run: |
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_TST }} --query taskDefinition > task-definition.json
-      - name: Show task definition
+          aws ecs describe-task-definition --task-definition "${{ secrets.ECS_TASK_FAMILY_TST }}" --query taskDefinition > task-definition.json
+      - name: Set image name as output
+        id: set-image-output
         run: |
-          cat task-definition.json
+          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Update Task Definition for TST with new image
-        id: render-task-def-tst
+        id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
           container-name: "${{ secrets.ECS_CONTAINER_NAME_TST }}"
-          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
+          image: "${{ steps.set-image-output.outputs.image }}"
       - name: Get service to update
+        id: set-service-output
         run: |
-          echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_TST }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
+          echo "::set-output name=service::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_TST }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.render-task-def-tst.outputs.task-definition }}
-          service: ${{ env.SERVICE }}
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ steps.set-service-output.outputs.service }}
           cluster: ${{ secrets.CLUSTER_NAME_TST }}
           wait-for-service-stability: false
