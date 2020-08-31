@@ -94,7 +94,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "${{ secrets.ECS_CONTAINER_NAME_DEV }}"
-          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
+          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Get service to update
         run: |
           echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_DEV }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
@@ -132,7 +132,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "${{ secrets.ECS_CONTAINER_NAME_TST }}"
-          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
+          image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Get service to update
         run: |
           echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_TST }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
