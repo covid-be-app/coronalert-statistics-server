@@ -84,10 +84,7 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on DEV
         run: |
-          aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
-        env:
-          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_DEV }}
-          ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY_DEV }}
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_DEV }} --query taskDefinition > task-definition.json
       - name: Show task definition
         run: |
           cat task-definition.json
@@ -100,9 +97,7 @@ jobs:
           image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
       - name: Get service to update
         run: |
-          echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
-        env:
-          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_DEV }}
+          echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_DEV }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
@@ -127,10 +122,7 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition on TST
         run: |
-          aws ecs describe-task-definition --task-definition ${ECS_TASK_FAMILY} --query taskDefinition > task-definition.json
-        env:
-          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_TST }}
-          ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY_TST }}
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_TST }} --query taskDefinition > task-definition.json
       - name: Show task definition
         run: |
           cat task-definition.json
@@ -143,9 +135,7 @@ jobs:
           image: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ env.GITHUB_SHA }}"
       - name: Get service to update
         run: |
-          echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${CLUSTER_NAME} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
-        env:
-          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME_TST }}
+          echo "::set-env name=SERVICE::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_TST }} --output text| grep Statistics | grep -v Int | awk -F'/' '{print $2}')"
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
