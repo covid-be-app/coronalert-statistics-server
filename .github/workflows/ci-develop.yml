@@ -53,9 +53,6 @@ jobs:
           while( ! wget -T 10 -q -O /dev/null http://localhost:6060/v1/namespaces ) ; do sleep 1 ; echo -n "." ; if [ $retries -eq 10 ] ; then echo " Timeout, aborting." ; exit 1 ; fi ; retries=$(($retries+1)) ; done
           ./clair-scanner -c http://localhost:6060 --ip $(hostname -i) -r gl-container-scanning-report.json -l clair.log -w clair-whitelist.yml ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA} || true
           cat gl-container-scanning-report.json
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get install --yes awscli
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -73,9 +70,6 @@ jobs:
     needs:
       - build
     steps:
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get install --yes awscli
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -113,9 +107,6 @@ jobs:
     needs:
       - build
     steps:
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get install --yes awscli
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
