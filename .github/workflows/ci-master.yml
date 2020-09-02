@@ -66,7 +66,7 @@ jobs:
       - name: Get service to update
         id: set-service-output
         run: |
-          echo "::set-output name=service::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_STG }} --output text | grep SubmissionInt | grep -v Int | awk -F'/' '{print $2}')"
+          echo "::set-output name=service::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_STG }} --output text | grep Statistics | awk -F'/' '{print $2}')"
       - name: Deploy services with new task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
