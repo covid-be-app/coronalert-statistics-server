@@ -27,9 +27,9 @@ jobs:
       - name: "Pull image from ECR, tag it and push it"
         run: |
           aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_HOST }}
-          docker pull ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${{ steps.get-src-tag.outputs.srctag }}
-          docker tag ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${{ steps.get-src-tag.outputs.srctag }} ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}
-          docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}
+          docker pull ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ steps.get-src-tag.outputs.srctag }}
+          docker tag ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ steps.get-src-tag.outputs.srctag }} ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}
+          docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}
 
   deploy-stg-statistics:
     name: "Deploy the external statistics service to the stg environment"
@@ -46,23 +46,23 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition for external service on STG
         run: |
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_STATISTICS_STG }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_STG }} --query taskDefinition > task-definition.json
       - name: Show task definition
         run: |
           cat task-definition.json
       - name: Set image name as output
         id: set-image-output
         run: |
-          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Update Task Definition for STG with new image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: "${{ secrets.ECS_CONTAINER_NAME_STATISTICS_STG }}"
+          container-name: "${{ secrets.ECS_CONTAINER_NAME_STG }}"
           image: "${{ steps.set-image-output.outputs.image }}"
         env:
-          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Get service to update
         id: set-service-output
         run: |

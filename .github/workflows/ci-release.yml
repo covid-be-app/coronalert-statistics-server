@@ -25,9 +25,9 @@ jobs:
       - name: "Pull image from ECR, tag it and push it"
         run: |
           aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_HOST }}
-          docker pull ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}
-          docker tag ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA} ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${{ steps.get-tag-value.outputs.tag }}
-          docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${{ steps.get-tag-value.outputs.tag }}
+          docker pull ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}
+          docker tag ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA} ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ steps.get-tag-value.outputs.tag }}
+          docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${{ steps.get-tag-value.outputs.tag }}
 
   deploy-prd-statistics:
     name: "Deploy the external statistics service to the prd environment"
@@ -44,23 +44,23 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition for external service on PRD
         run: |
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_STATISTICS_PRD }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_PRD }} --query taskDefinition > task-definition.json
       - name: Show task definition
         run: |
           cat task-definition.json
       - name: Set image name as output
         id: set-image-output
         run: |
-          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Update Task Definition for PRD with new image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: "${{ secrets.ECS_CONTAINER_NAME_STATISTICS_PRD }}"
+          container-name: "${{ secrets.ECS_CONTAINER_NAME_PRD }}"
           image: "${{ steps.set-image-output.outputs.image }}"
         env:
-          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Get service to update
         id: set-service-output
         run: |

@@ -37,7 +37,7 @@ jobs:
       - name: docker build
         run: |
           docker build \
-          --tag ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA} \
+          --tag ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA} \
           .
       - name: Run a vulnerability scan on the docker image
         run: |
@@ -54,7 +54,7 @@ jobs:
           retries=0
           echo "Waiting for clair daemon to start"
           while( ! wget -T 10 -q -O /dev/null http://localhost:6060/v1/namespaces ) ; do sleep 1 ; echo -n "." ; if [ $retries -eq 10 ] ; then echo " Timeout, aborting." ; exit 1 ; fi ; retries=$(($retries+1)) ; done
-          ./clair-scanner -c http://localhost:6060 --ip $(hostname -i) -r gl-container-scanning-report.json -l clair.log -w clair-whitelist.yml ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA} || true
+          ./clair-scanner -c http://localhost:6060 --ip $(hostname -i) -r gl-container-scanning-report.json -l clair.log -w clair-whitelist.yml ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA} || true
           cat gl-container-scanning-report.json
       - name: Configure AWS Credentials if this is a PR close
         if: github.event.action == 'closed' && github.event.pull_request.merged
@@ -67,7 +67,7 @@ jobs:
         if: github.event.action == 'closed' && github.event.pull_request.merged
         run: |
           aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_HOST }}
-          docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}
+          docker push ${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}
 
   deploy-dev-statistics:
     name: "Deploy the statistics service to the dev environment"
@@ -84,23 +84,23 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition for external service on DEV
         run: |
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_STATISTICS_DEV }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_DEV }} --query taskDefinition > task-definition.json
       - name: Show task definition
         run: |
           cat task-definition.json
       - name: Set image name as output
         id: set-image-output
         run: |
-          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Update Task Definition for DEV with new image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: "${{ secrets.ECS_CONTAINER_NAME_STATISTICS_DEV }}"
+          container-name: "${{ secrets.ECS_CONTAINER_NAME_DEV }}"
           image: "${{ steps.set-image-output.outputs.image }}"
         env:
-          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Get service to update
         id: set-service-output
         run: |
@@ -128,23 +128,23 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
       - name: Retrieve Task Definition for external service on TST
         run: |
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_STATISTICS_TST }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY_TST }} --query taskDefinition > task-definition.json
       - name: Show task definition
         run: |
           cat task-definition.json
       - name: Set image name as output
         id: set-image-output
         run: |
-          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          echo "::set-output name=image::${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Update Task Definition for TST with new image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: "${{ secrets.ECS_CONTAINER_NAME_STATISTICS_TST }}"
+          container-name: "${{ secrets.ECS_CONTAINER_NAME_TST }}"
           image: "${{ steps.set-image-output.outputs.image }}"
         env:
-          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME_STATISTICS }}:${GITHUB_SHA}"
+          IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
       - name: Get service to update
         id: set-service-output
         run: |
