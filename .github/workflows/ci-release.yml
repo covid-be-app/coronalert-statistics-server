@@ -33,7 +33,6 @@ jobs:
   deploy-prd-statistics:
     name: "Deploy the external statistics service to the prd environment"
     runs-on: ubuntu-latest
-    if: github.base_ref == 'master' && github.event.action == 'closed' && github.event.pull_request.merged
     needs:
       - tag-statistics-image
     steps:
