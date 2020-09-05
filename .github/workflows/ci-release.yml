@@ -11,6 +11,7 @@ on:
 jobs:
   tag-statistics-image:
     name: "Tag the statistics image on ECR with the version"
+    runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
