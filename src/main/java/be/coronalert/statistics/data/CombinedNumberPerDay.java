@@ -19,45 +19,21 @@
  * under the License.
  */
 
-package be.coronalert.statistics.cases;
+package be.coronalert.statistics.data;
 
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-public class CombinedCasesPerDay implements Comparable {
+@Data
+@AllArgsConstructor
+public class CombinedNumberPerDay implements Comparable {
 
   private LocalDate date;
-  private int cases;
-
-  /**
-   * Constructs a CombinedCasesPerDay entity.
-   */
-  public CombinedCasesPerDay(LocalDate date, int cases) {
-    this.date = date;
-    this.cases = cases;
-  }
-
-  public LocalDate getDate() {
-    return date;
-  }
-
-  public int getCases() {
-    return cases;
-  }
-
-  public void setCases(int cases) {
-    this.cases = cases;
-  }
-
-  @Override
-  public String toString() {
-    return "CombinedCasesPerDay{"
-      +  "date=" + date
-      +  ", cases=" + cases
-      + '}';
-  }
+  private int number;
 
   @Override
   public int compareTo(Object o) {
-    return date.compareTo(((CombinedCasesPerDay) o).getDate());
+    return ((CombinedNumberPerDay) o).getDate().compareTo(date);
   }
 }

@@ -19,24 +19,22 @@
  * under the License.
  */
 
-package be.coronalert.statistics.hospitalisations;
+package be.coronalert.statistics.mortality;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
-public class HospitalisationsPerProvince {
+public class MortalityPerProvince {
 
   @JsonProperty("DATE")
   private LocalDate date;
 
-  @JsonProperty("PROVINCE")
-  private String province;
+  @JsonProperty("REGION")
+  private String region;
 
-  @JsonProperty("NEW_IN")
-  private int newIn;
+  @JsonProperty("DEATHS")
+  private int deaths;
 
 }
