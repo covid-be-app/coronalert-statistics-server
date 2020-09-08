@@ -101,20 +101,26 @@ jobs:
           image: "${{ steps.set-image-output.outputs.image }}"
         env:
           IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
-      - name: Get service to update
-        id: set-service-output
-        run: |
-          echo "::set-output name=service::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_DEV }} --output text | grep Statistics | awk -F'/' '{print $2}')"
-      - name: Deploy services with new task definition
+      - name: Deploy new task definition
+        id: deploy-task-definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ steps.set-service-output.outputs.service }}
-          cluster: ${{ secrets.CLUSTER_NAME_DEV }}
           wait-for-service-stability: false
+      - name: Determine scheduled task name
+        id: get-scheduled-task-name
+        run: |
+          SCHEDULEDTASKNAME=$(aws events list-rules --query "Rules[*]|[?contains(Name,'Statist')].Name" --output text)
+          echo "::set-output name=scheduledtaskname::${SCHEDULEDTASKNAME}"
+      - name: Create new target config for the statistics scheduled task
+        id: update-scheduled-task-statistics
+        run: |
+          aws events list-targets-by-rule --rule "${{ steps.get-scheduled-task-name.outputs.scheduledtaskname }}" > targetdef.orig.json
+          jq '.Targets[0].EcsParameters.TaskDefinitionArn = "${{ steps.deploy-task-definition.outputs.task-definition-arn }}"' targetdef.orig.json > targetdef.json
+          aws events put-targets --cli-input-json file://targetdef.json --rule "${{ steps.get-scheduled-task-name.outputs.scheduledtaskname }}"
 
   deploy-tst-statistics:
-    name: "Deploy the external statistics service to the tst environment"
+    name: "Deploy the statistics service to the tst environment"
     runs-on: ubuntu-latest
     if: github.base_ref == 'development' && github.event.action == 'closed' && github.event.pull_request.merged
     needs:
@@ -145,14 +151,20 @@ jobs:
           image: "${{ steps.set-image-output.outputs.image }}"
         env:
           IMAGE: "${{ secrets.ECR_REPO_HOST }}/${{ secrets.ECR_REPO_NAME }}:${GITHUB_SHA}"
-      - name: Get service to update
-        id: set-service-output
-        run: |
-          echo "::set-output name=service::$(aws ecs list-services --cluster ${{ secrets.CLUSTER_NAME_TST }} --output text | grep Statistics | awk -F'/' '{print $2}')"
-      - name: Deploy services with new task definition
+      - name: Deploy new task definition
+        id: deploy-task-definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ steps.set-service-output.outputs.service }}
-          cluster: ${{ secrets.CLUSTER_NAME_TST }}
           wait-for-service-stability: false
+      - name: Determine scheduled task name
+        id: get-scheduled-task-name
+        run: |
+          SCHEDULEDTASKNAME=$(aws events list-rules --query "Rules[*]|[?contains(Name,'Statist')].Name" --output text)
+          echo "::set-output name=scheduledtaskname::${SCHEDULEDTASKNAME}"
+      - name: Create new target config for the statistics scheduled task
+        id: update-scheduled-task-statistics
+        run: |
+          aws events list-targets-by-rule --rule "${{ steps.get-scheduled-task-name.outputs.scheduledtaskname }}" > targetdef.orig.json
+          jq '.Targets[0].EcsParameters.TaskDefinitionArn = "${{ steps.deploy-task-definition.outputs.task-definition-arn }}"' targetdef.orig.json > targetdef.json
+          aws events put-targets --cli-input-json file://targetdef.json --rule "${{ steps.get-scheduled-task-name.outputs.scheduledtaskname }}"
