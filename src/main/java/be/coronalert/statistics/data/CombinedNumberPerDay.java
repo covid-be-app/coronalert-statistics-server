@@ -19,24 +19,21 @@
  * under the License.
  */
 
-package be.coronalert.statistics.hospitalisations;
+package be.coronalert.statistics.data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
-public class HospitalisationsPerProvince {
+@AllArgsConstructor
+public class CombinedNumberPerDay implements Comparable {
 
-  @JsonProperty("DATE")
   private LocalDate date;
+  private int number;
 
-  @JsonProperty("PROVINCE")
-  private String province;
-
-  @JsonProperty("NEW_IN")
-  private int newIn;
-
+  @Override
+  public int compareTo(Object o) {
+    return ((CombinedNumberPerDay) o).getDate().compareTo(date);
+  }
 }

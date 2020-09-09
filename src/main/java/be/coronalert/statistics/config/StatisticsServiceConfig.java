@@ -21,60 +21,29 @@
 
 package be.coronalert.statistics.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "statistics")
+@Data
 public class StatisticsServiceConfig {
 
   private DataSource cases;
   private DataSource hospitalisations;
+  private DataSource mortality;
   private int movingAverageSize;
+  private S3 s3;
 
-  public DataSource getCases() {
-    return cases;
-  }
-
-  public void setCases(DataSource cases) {
-    this.cases = cases;
-  }
-
-  public DataSource getHospitalisations() {
-    return hospitalisations;
-  }
-
-  public void setHospitalisations(DataSource hospitalisations) {
-    this.hospitalisations = hospitalisations;
-  }
-
-  public int getMovingAverageSize() {
-    return movingAverageSize;
-  }
-
-  public void setMovingAverageSize(int movingAverageSize) {
-    this.movingAverageSize = movingAverageSize;
-  }
-
+  @Data
   public static class DataSource {
     private String url;
-    private int rate;
-
-    public String getUrl() {
-      return url;
-    }
-
-    public void setUrl(String url) {
-      this.url = url;
-    }
-
-    public int getRate() {
-      return rate;
-    }
-
-    public void setRate(int rate) {
-      this.rate = rate;
-    }
   }
 
+  @Data
+  public static class S3 {
+    private String bucket;
+    private String key;
+  }
 }

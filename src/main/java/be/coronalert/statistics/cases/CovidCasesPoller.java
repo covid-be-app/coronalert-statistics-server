@@ -21,22 +21,21 @@
 
 package be.coronalert.statistics.cases;
 
-import be.coronalert.statistics.average.MovingAverageInSlidingWindow;
 import be.coronalert.statistics.config.StatisticsServiceConfig;
-import be.coronalert.statistics.data.DataHolder;
+import be.coronalert.statistics.data.CombinedNumberPerDay;
+import be.coronalert.statistics.data.Result;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeSet;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -46,44 +45,62 @@ public class CovidCasesPoller {
   private ObjectMapper objectMapper;
 
   @Autowired
-  private DataHolder dataHolder;
-
-  @Autowired
   private StatisticsServiceConfig statisticsServiceConfig;
 
 
   /**
-   * Retrieves the sciensano cases data.
+   * Retrieves the sciensano cases data:
+   *  Aug 28 : In de week van 18 tot 24 augustus werden per dag gemiddeld 477 besmettingen vastgesteld.
+   *           Dat is 7 procent minder dan de week ervoor, toen waren het er nog 513 per dag.
+     *  Aug 31 : In de week van 21 tot 27 augustus werden 430 besmettingen vastgesteld.
+   *           Dat is 14% minder dan de voorgaande week.
+   *           (580 + 512 + 207 + 116 + 610 + 524 + 512) / 7 = 437*
+   * @return
    */
-  @Scheduled(fixedDelayString = "${statistics.cases.poll-rate}")
-  public void pollResults() throws IOException {
+  public Result pollResults() throws IOException {
 
     URL url = new URL(statisticsServiceConfig.getCases().getUrl());
     CasesPerProvince[] entries = objectMapper.readValue(url, CasesPerProvince[].class);
 
-    Map<CombinedCasesPerDay, List<CasesPerProvince>> collectedCombinedCasesPerDay =
+    Map<CombinedNumberPerDay, List<CasesPerProvince>> collectedCombinedCasesPerDay =
       Arrays.stream(entries)
-        .filter(e -> Objects.nonNull(e.getDate())).collect(groupingBy(CasesPerProvince::getDate))
+        .filter(e -> Objects.nonNull(e.getDate()))
+        .collect(Collectors.groupingBy(CasesPerProvince::getDate))
         .entrySet()
         .stream()
-        .collect(toMap(x -> {
-          int sumCases = x.getValue().stream().mapToInt(CasesPerProvince::getCases).sum();
-          return new CombinedCasesPerDay(x.getKey(), sumCases);
+        .sorted(new Comparator<Map.Entry<LocalDate, List<CasesPerProvince>>>() {
+          @Override
+          public int compare(Map.Entry<LocalDate, List<CasesPerProvince>> o1,
+                             Map.Entry<LocalDate, List<CasesPerProvince>> o2) {
+            return o2.getKey().compareTo(o1.getKey());
+          }
+        })
+        .filter(e -> e.getKey().isBefore(LocalDate.now().minusDays(3)))
+        .limit(14)
+        .collect(Collectors.toMap(x -> {
+          int sumCases = x.getValue()
+            .stream()
+            .mapToInt(CasesPerProvince::getCases)
+            .sum();
+          return new CombinedNumberPerDay(x.getKey(), sumCases);
         }, Map.Entry::getValue));
 
-    Set<CombinedCasesPerDay> combinedCasesPerDay = new TreeSet<>(collectedCombinedCasesPerDay.keySet());
+    TreeSet<CombinedNumberPerDay> combinedCasesPerDay = new TreeSet<>(collectedCombinedCasesPerDay.keySet());
 
-    MovingAverageInSlidingWindow m = new MovingAverageInSlidingWindow(statisticsServiceConfig.getMovingAverageSize());
+    List<Integer> last2weeks = combinedCasesPerDay
+      .stream()
+      .map(CombinedNumberPerDay::getNumber)
+      .collect(Collectors.toList());
 
-    combinedCasesPerDay.forEach((v) -> {
-      int sumCases = v.getCases();
-      int movingAverage = m.findMovingAverage(sumCases);
-      v.setCases(movingAverage);
-    });
+    List<Integer> lastweek = last2weeks.subList(0,7);
+    List<Integer> weekbefore = last2weeks.subList(7,14);
 
-    dataHolder.setCombinedCasesPerDay(combinedCasesPerDay);
+
+    double v1 = lastweek.stream().mapToInt(val -> val).average().orElse(0.0);
+    double v2 = weekbefore.stream().mapToInt(val -> val).average().orElse(0.0);
+
+    return new Result(v1,v2);
 
   }
-
 
 }

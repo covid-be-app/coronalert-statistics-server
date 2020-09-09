@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package be.coronalert.statistics.hospitalisations;
+package be.coronalert.statistics.mortality;
 
 import be.coronalert.statistics.config.StatisticsServiceConfig;
 import be.coronalert.statistics.data.CombinedNumberPerDay;
@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HospitalisationsPoller {
+public class MortalityPoller {
 
   @Autowired
   private StatisticsServiceConfig statisticsServiceConfig;
@@ -50,23 +50,24 @@ public class HospitalisationsPoller {
   private ObjectMapper objectMapper;
 
   /**
-   * Retrieves the sciensano hospitalisation data.
+   * Retrieves the sciensano mortality data.
    *
    * @return
    */
   public Result pollResults() throws IOException {
-    URL url = new URL(statisticsServiceConfig.getHospitalisations().getUrl());
-    HospitalisationsPerProvince[] entries = objectMapper.readValue(url, HospitalisationsPerProvince[].class);
+    URL url = new URL(statisticsServiceConfig.getMortality().getUrl());
 
-    Map<CombinedNumberPerDay, List<HospitalisationsPerProvince>> collectedCombinedHospitalisationsPerDay =
+    MortalityPerProvince[] entries = objectMapper.readValue(url, MortalityPerProvince[].class);
+
+    Map<CombinedNumberPerDay, List<MortalityPerProvince>> combinedNumberPerDay =
       Arrays.stream(entries)
-        .filter(e -> Objects.nonNull(e.getDate())).collect(groupingBy(HospitalisationsPerProvince::getDate))
+        .filter(e -> Objects.nonNull(e.getDate())).collect(groupingBy(MortalityPerProvince::getDate))
         .entrySet()
         .stream()
-        .sorted(new Comparator<Map.Entry<LocalDate, List<HospitalisationsPerProvince>>>() {
+        .sorted(new Comparator<Map.Entry<LocalDate, List<MortalityPerProvince>>>() {
           @Override
-          public int compare(Map.Entry<LocalDate, List<HospitalisationsPerProvince>> o1,
-                             Map.Entry<LocalDate, List<HospitalisationsPerProvince>> o2) {
+          public int compare(Map.Entry<LocalDate, List<MortalityPerProvince>> o1,
+                             Map.Entry<LocalDate, List<MortalityPerProvince>> o2) {
             return o2.getKey().compareTo(o1.getKey());
           }
         })
@@ -75,12 +76,12 @@ public class HospitalisationsPoller {
         .collect(toMap(x -> {
           int sumCases = x.getValue()
             .stream()
-            .mapToInt(HospitalisationsPerProvince::getNewIn)
+            .mapToInt(MortalityPerProvince::getDeaths)
             .sum();
           return new CombinedNumberPerDay(x.getKey(), sumCases);
         }, Map.Entry::getValue));
 
-    TreeSet<CombinedNumberPerDay> combinedCasesPerDay = new TreeSet<>(collectedCombinedHospitalisationsPerDay.keySet());
+    TreeSet<CombinedNumberPerDay> combinedCasesPerDay = new TreeSet<>(combinedNumberPerDay.keySet());
 
     List<Integer> last2weeks = combinedCasesPerDay
       .stream()
