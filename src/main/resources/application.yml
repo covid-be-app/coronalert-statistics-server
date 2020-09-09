@@ -1,6 +1,7 @@
 spring:
   application:
     name: cwa-statistics-server
+
 cloud:
   aws:
     region:

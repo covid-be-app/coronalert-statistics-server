@@ -59,6 +59,7 @@ public class HospitalisationsPoller {
     HospitalisationsPerProvince[] entries = objectMapper.readValue(url, HospitalisationsPerProvince[].class);
 
     Map<CombinedNumberPerDay, List<HospitalisationsPerProvince>> collectedCombinedHospitalisationsPerDay =
+
       Arrays.stream(entries)
         .filter(e -> Objects.nonNull(e.getDate())).collect(groupingBy(HospitalisationsPerProvince::getDate))
         .entrySet()

@@ -102,5 +102,4 @@ public class CovidCasesPoller {
     return new Result(v1,v2);
 
   }
-
 }
