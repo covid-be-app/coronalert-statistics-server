@@ -1,7 +1,7 @@
 /*
  * Coronalert / coronalert-statistics-server
  *
- * (C) 2020, Ixor CVBA
+ * (c) 2020 Devside SRL
  *
  * Ixor CVBA and all other contributors /
  * copyright owners license this file to you under the Apache
