@@ -21,26 +21,24 @@ public class VaccinationsPoller {
   /**
    * Retrieves the sciensano vaccinations data.
    *
-   * @return
+   * @return A map containing the amount of vaccinations for dose 1 and 2.
    */
   public Map<String, Integer> pollResults() throws IOException {
     URL url = new URL(statisticsServiceConfig.getVaccinations().getUrl());
 
     Vaccination[] entries = objectMapper.readValue(url, Vaccination[].class);
 
-    int firstDose = Arrays.stream(entries)
-      .filter(e -> e.getDose().equals("A"))
-      .map(Vaccination::getCount)
-      .map(Integer::valueOf)
-      .reduce(0, Integer::sum);
+    Integer firstDose = getNumberOfVaccinationsForDose(entries, "A");
+    Integer secondDose = getNumberOfVaccinationsForDose(entries, "B");
 
-    int secondDose = Arrays.stream(entries)
+    return Map.of("firstDose", firstDose, "secondDose", secondDose);
+  }
+
+  private Integer getNumberOfVaccinationsForDose(Vaccination[] entries, String dose) {
+    return Arrays.stream(entries)
       .filter(e -> e.getDose().equals("B"))
       .map(Vaccination::getCount)
       .map(Integer::valueOf)
       .reduce(0, Integer::sum);
-
-
-    return Map.of("firstDose", firstDose, "secondDose", secondDose);
   }
 }
