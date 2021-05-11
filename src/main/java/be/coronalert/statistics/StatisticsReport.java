@@ -38,6 +38,7 @@ public class StatisticsReport {
   private Integer averageDeceasedChangePercentage;
   private Integer vaccinatedWithFirstDose;
   private Integer vaccinatedWithSecondDose;
+  private Integer vaccinatedWithThirdDose;
   private LocalDate startDate;
   private LocalDate endDate;
 
@@ -67,6 +68,7 @@ public class StatisticsReport {
 
     this.vaccinatedWithFirstDose = vaccinations.get("firstDose");
     this.vaccinatedWithSecondDose = vaccinations.get("secondDose");
+    this.vaccinatedWithThirdDose = vaccinations.get("thirdDose");
   }
 
 }

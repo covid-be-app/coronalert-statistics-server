@@ -30,13 +30,14 @@ public class VaccinationsPoller {
 
     Integer firstDose = getNumberOfVaccinationsForDose(entries, "A");
     Integer secondDose = getNumberOfVaccinationsForDose(entries, "B");
+    Integer thirdDose = getNumberOfVaccinationsForDose(entries, "C");
 
-    return Map.of("firstDose", firstDose, "secondDose", secondDose);
+    return Map.of("firstDose", firstDose, "secondDose", secondDose, "thirdDose", thirdDose);
   }
 
   private Integer getNumberOfVaccinationsForDose(Vaccination[] entries, String dose) {
     return Arrays.stream(entries)
-      .filter(e -> e.getDose().equals("B"))
+      .filter(e -> e.getDose().equals(dose))
       .map(Vaccination::getCount)
       .map(Integer::valueOf)
       .reduce(0, Integer::sum);
