@@ -41,12 +41,4 @@ public class VaccinationsPoller {
 
     return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated, VaccinationLevel.FULLY, fullyVaccinated);
   }
-
-  private Integer getNumberOfVaccinationsForDose(Vaccination[] entries, String dose) {
-    return Arrays.stream(entries)
-      .filter(e -> e.getDose().equals(dose))
-      .map(Vaccination::getCount)
-      .map(Integer::valueOf)
-      .reduce(0, Integer::sum);
-  }
 }
