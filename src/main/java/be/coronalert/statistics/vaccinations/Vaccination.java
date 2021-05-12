@@ -9,5 +9,5 @@ public class Vaccination {
   private String dose;
 
   @JsonProperty("COUNT")
-  private String count;
+  private Integer count;
 }

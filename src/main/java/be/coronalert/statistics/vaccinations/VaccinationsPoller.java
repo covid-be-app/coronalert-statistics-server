@@ -10,6 +10,9 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.summingInt;
+
 @Component
 public class VaccinationsPoller {
   @Autowired
@@ -28,9 +31,13 @@ public class VaccinationsPoller {
 
     Vaccination[] entries = objectMapper.readValue(url, Vaccination[].class);
 
-    Integer doseC = getNumberOfVaccinationsForDose(entries, "C");
-    Integer atLeastPartiallyVaccinated = getNumberOfVaccinationsForDose(entries, "A") + doseC;
-    Integer fullyVaccinated = getNumberOfVaccinationsForDose(entries, "B") + doseC;
+    Map<String, Integer> collect = Arrays.stream(entries)
+      .collect(groupingBy(
+        Vaccination::getDose,
+        summingInt(Vaccination::getCount)));
+
+    Integer atLeastPartiallyVaccinated = collect.get("A") + collect.get("C");
+    Integer fullyVaccinated = collect.get("B") + collect.get("C");
 
     return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated, VaccinationLevel.FULLY, fullyVaccinated);
   }
