@@ -69,5 +69,4 @@ public class StatisticsReport {
     this.atLeastPartiallyVaccinated = vaccinations.get(VaccinationLevel.PARTIALLY);
     this.fullyVaccinated = vaccinations.get(VaccinationLevel.FULLY);
   }
-
 }
