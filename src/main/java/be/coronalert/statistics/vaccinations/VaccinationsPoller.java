@@ -29,7 +29,8 @@ public class VaccinationsPoller {
     Vaccination[] entries = objectMapper.readValue(url, Vaccination[].class);
 
     Integer atLeastPartiallyVaccinated = getNumberOfVaccinationsForDose(entries, "A");
-    Integer fullyVaccinated = getNumberOfVaccinationsForDose(entries, "B") + getNumberOfVaccinationsForDose(entries, "C");
+    Integer fullyVaccinated = getNumberOfVaccinationsForDose(entries, "B")
+      + getNumberOfVaccinationsForDose(entries, "C");
 
     return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated, VaccinationLevel.FULLY, fullyVaccinated);
   }
