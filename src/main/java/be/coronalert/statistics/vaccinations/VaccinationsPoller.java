@@ -23,16 +23,15 @@ public class VaccinationsPoller {
    *
    * @return A map containing the amount of vaccinations for dose 1 and 2.
    */
-  public Map<String, Integer> pollResults() throws IOException {
+  public Map<VaccinationLevel, Integer> pollResults() throws IOException {
     URL url = new URL(statisticsServiceConfig.getVaccinations().getUrl());
 
     Vaccination[] entries = objectMapper.readValue(url, Vaccination[].class);
 
-    Integer firstDose = getNumberOfVaccinationsForDose(entries, "A");
-    Integer secondDose = getNumberOfVaccinationsForDose(entries, "B");
-    Integer thirdDose = getNumberOfVaccinationsForDose(entries, "C");
+    Integer atLeastPartiallyVaccinated = getNumberOfVaccinationsForDose(entries, "A");
+    Integer fullyVaccinated = getNumberOfVaccinationsForDose(entries, "B") + getNumberOfVaccinationsForDose(entries, "C");
 
-    return Map.of("firstDose", firstDose, "secondDose", secondDose, "thirdDose", thirdDose);
+    return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated, VaccinationLevel.FULLY, fullyVaccinated);
   }
 
   private Integer getNumberOfVaccinationsForDose(Vaccination[] entries, String dose) {
