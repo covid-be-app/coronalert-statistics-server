@@ -23,6 +23,9 @@ package be.coronalert.statistics;
 
 import be.coronalert.statistics.data.Result;
 import java.time.LocalDate;
+import java.util.Map;
+
+import be.coronalert.statistics.vaccinations.VaccinationLevel;
 import lombok.Data;
 
 @Data
@@ -34,6 +37,8 @@ public class StatisticsReport {
   private Integer averageHospitalisedChangePercentage;
   private Integer averageDeceased;
   private Integer averageDeceasedChangePercentage;
+  private Integer atLeastPartiallyVaccinated;
+  private Integer fullyVaccinated;
   private LocalDate startDate;
   private LocalDate endDate;
 
@@ -45,8 +50,8 @@ public class StatisticsReport {
     LocalDate endDate,
     Result cases,
     Result hospitalisations,
-    Result mortalities
-
+    Result mortalities,
+    Map<VaccinationLevel, Integer> vaccinations
   ) {
 
     this.endDate = endDate;
@@ -61,6 +66,7 @@ public class StatisticsReport {
     this.averageInfected = cases.getCurrentValue().intValue();
     this.averageInfectedChangePercentage = cases.getDifference();
 
+    this.atLeastPartiallyVaccinated = vaccinations.get(VaccinationLevel.PARTIALLY);
+    this.fullyVaccinated = vaccinations.get(VaccinationLevel.FULLY);
   }
-
 }
