@@ -33,6 +33,7 @@ public class StatisticsServiceConfig {
   private DataSource cases;
   private DataSource hospitalisations;
   private DataSource mortality;
+  private DataSource vaccinations;
   private int movingAverageSize;
   private S3 s3;
 

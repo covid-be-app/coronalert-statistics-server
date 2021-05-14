@@ -25,6 +25,7 @@ import be.coronalert.statistics.cases.CovidCasesPoller;
 import be.coronalert.statistics.config.StatisticsServiceConfig;
 import be.coronalert.statistics.hospitalisations.HospitalisationsPoller;
 import be.coronalert.statistics.mortality.MortalityPoller;
+import be.coronalert.statistics.vaccinations.VaccinationsPoller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import org.slf4j.Logger;
@@ -61,6 +62,9 @@ public class StatisticsRunner implements ApplicationRunner {
   private MortalityPoller mortalityPoller;
 
   @Autowired
+  private VaccinationsPoller vaccinationsPoller;
+
+  @Autowired
   private StatisticsServiceConfig statisticsServiceConfig;
 
   @Autowired
@@ -72,7 +76,8 @@ public class StatisticsRunner implements ApplicationRunner {
       LocalDate.now().minusDays(4),
       covidCasesPoller.pollResults(),
       hospitalisationsPoller.pollResults(),
-      mortalityPoller.pollResults()
+      mortalityPoller.pollResults(),
+      vaccinationsPoller.pollResults()
     );
 
     logger.info("statisticsReport = " + statisticsReport);
