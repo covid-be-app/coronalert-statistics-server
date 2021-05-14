@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Vaccination {
   @JsonProperty("DOSE")
-  private String dose;
+  private VaccinationDose dose;
 
   @JsonProperty("COUNT")
   private Integer count;

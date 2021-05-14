@@ -27,21 +27,17 @@ public class VaccinationsPoller {
    * @return A map containing the amount of vaccinations for dose 1 and 2.
    */
   public Map<VaccinationLevel, Integer> pollResults() throws IOException {
-    final String PARTIALLY_VACCINATED_WITH_ONE_DOSE = "A";
-    final String FULLY_VACCINATED_WITH_TWO_DOSES = "B";
-    final String FULLY_VACCINATED_WITH_ONE_DOSE = "C";
-
     URL url = new URL(statisticsServiceConfig.getVaccinations().getUrl());
 
     Vaccination[] entries = objectMapper.readValue(url, Vaccination[].class);
 
-    Map<String, Integer> collect = Arrays.stream(entries)
+    Map<VaccinationDose, Integer> collect = Arrays.stream(entries)
       .collect(groupingBy(
         Vaccination::getDose,
         summingInt(Vaccination::getCount)));
 
-    Integer atLeastPartiallyVaccinated = collect.get(PARTIALLY_VACCINATED_WITH_ONE_DOSE) + collect.get(FULLY_VACCINATED_WITH_ONE_DOSE);
-    Integer fullyVaccinated = collect.get(FULLY_VACCINATED_WITH_TWO_DOSES) + collect.get(FULLY_VACCINATED_WITH_ONE_DOSE);
+    Integer atLeastPartiallyVaccinated = collect.get(VaccinationDose.PARTIALLY_VACCINATED_WITH_ONE_DOSE) + collect.get(VaccinationDose.FULLY_VACCINATED_WITH_ONE_DOSE);
+    Integer fullyVaccinated = collect.get(VaccinationDose.FULLY_VACCINATED_WITH_TWO_DOSES) + collect.get(VaccinationDose.FULLY_VACCINATED_WITH_ONE_DOSE);
 
     return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated, VaccinationLevel.FULLY, fullyVaccinated);
   }
