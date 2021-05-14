@@ -10,7 +10,9 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
-import static be.coronalert.statistics.vaccinations.VaccinationDose.*;
+import static be.coronalert.statistics.vaccinations.VaccinationDose.PARTIALLY_VACCINATED_WITH_ONE_DOSE;
+import static be.coronalert.statistics.vaccinations.VaccinationDose.FULLY_VACCINATED_WITH_TWO_DOSES;
+import static be.coronalert.statistics.vaccinations.VaccinationDose.FULLY_VACCINATED_WITH_ONE_DOSE;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summingInt;
 

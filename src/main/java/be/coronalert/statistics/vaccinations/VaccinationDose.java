@@ -12,5 +12,4 @@ public enum VaccinationDose {
   FULLY_VACCINATED_WITH_ONE_DOSE,
   @JsonEnumDefaultValue
   UNKNOWN_VACCINATION_DOSE
-
 }
