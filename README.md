@@ -1,7 +1,7 @@
 ## coronalert-statistics-server
 
 This project is polls statistics from the sciensano public endpoints and transforms them into weekly 7 day averages of the data.
-It makes the data available via a Cloudfront CDN for the mobile apps to expose. 
+It makes the data available via a Cloudfront CDN for the mobile apps to consume. 
 
 ## Licensing
 ```
