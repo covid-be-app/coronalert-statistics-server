@@ -39,6 +39,7 @@ public class JacksonConfig {
     return new ObjectMapper()
       .findAndRegisterModules()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true)
       .disable(WRITE_DATES_AS_TIMESTAMPS);
 
   }
