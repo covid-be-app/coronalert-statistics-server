@@ -1,6 +1,7 @@
 package be.coronalert.statistics.vaccinations;
 
 import be.coronalert.statistics.config.StatisticsServiceConfig;
+import static be.coronalert.statistics.vaccinations.VaccinationDose.BOOSTER_DOSE;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,7 +44,12 @@ public class VaccinationsPoller {
       + collect.get(FULLY_VACCINATED_WITH_ONE_DOSE);
     Integer fullyVaccinated = collect.get(FULLY_VACCINATED_WITH_TWO_DOSES)
       + collect.get(FULLY_VACCINATED_WITH_ONE_DOSE);
+    Integer boosterVaccinated = collect.get(BOOSTER_DOSE);
 
-    return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated, VaccinationLevel.FULLY, fullyVaccinated);
+    return Map.of(VaccinationLevel.PARTIALLY, atLeastPartiallyVaccinated,
+      VaccinationLevel.FULLY, fullyVaccinated,
+      VaccinationLevel.BOOSTER, boosterVaccinated);
+
+
   }
 }
