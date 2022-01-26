@@ -10,6 +10,8 @@ public enum VaccinationDose {
   FULLY_VACCINATED_WITH_TWO_DOSES,
   @JsonProperty("C")
   FULLY_VACCINATED_WITH_ONE_DOSE,
+  @JsonProperty("E")
+  BOOSTER_DOSE,
   @JsonEnumDefaultValue
   UNKNOWN_VACCINATION_DOSE
 }
