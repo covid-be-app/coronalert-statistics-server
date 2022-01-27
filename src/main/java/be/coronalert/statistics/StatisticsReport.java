@@ -31,6 +31,7 @@ import lombok.Data;
 @Data
 public class StatisticsReport {
 
+
   private Integer averageInfected;
   private Integer averageInfectedChangePercentage;
   private Integer averageHospitalised;
@@ -39,6 +40,7 @@ public class StatisticsReport {
   private Integer averageDeceasedChangePercentage;
   private Integer atLeastPartiallyVaccinated;
   private Integer fullyVaccinated;
+  private Integer boosterVaccinated;
   private LocalDate startDate;
   private LocalDate endDate;
 
@@ -68,5 +70,7 @@ public class StatisticsReport {
 
     this.atLeastPartiallyVaccinated = vaccinations.get(VaccinationLevel.PARTIALLY);
     this.fullyVaccinated = vaccinations.get(VaccinationLevel.FULLY);
+    this.boosterVaccinated = vaccinations.get(VaccinationLevel.BOOSTER);
+
   }
 }
